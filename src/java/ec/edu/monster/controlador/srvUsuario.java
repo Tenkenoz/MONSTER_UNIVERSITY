@@ -1,11 +1,10 @@
-package ec.edu.monster.controlador; // Ajusta este paquete según tu estructura
+package ec.edu.monster.controlador;
 
 import ec.edu.monster.modelo.DAOUSUARIO;
 import ec.edu.monster.modelo.Usuario;
 import ec.edu.monster.modelo.Persona;
 import ec.edu.monster.modelo.Empleado;
 import ec.edu.monster.modelo.Estudiante;
-
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +15,10 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet(name = "srvUsuario", urlPatterns = {"/srvUsuario"})
 public class srvUsuario extends HttpServlet {
+
+    // DEFINIMOS LA RUTA BASE SEGÚN TU IMAGEN
+    // Esto apunta a la carpeta "ec.edu.monster.vista" dentro de Web Pages
+    private static final String CARPETA_VISTAS = "/ec.edu.monster.vista/";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -32,17 +35,18 @@ public class srvUsuario extends HttpServlet {
                         cerrarsession(request, response);
                         break;
                     default:
-                        response.sendRedirect("identificar.jsp");
+                        // CORRECCIÓN: Redirige a login.jsp en su carpeta correcta
+                        response.sendRedirect(request.getContextPath() + CARPETA_VISTAS + "login.jsp");
                 }
             } else {
-                response.sendRedirect("identificar.jsp");
+                response.sendRedirect(request.getContextPath() + CARPETA_VISTAS + "login.jsp");
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Importante para ver errores en consola del servidor
+            e.printStackTrace();
             try {
-                 // Si falla, redirigimos a identificar con mensaje de error
                  request.setAttribute("msj", "Error en el servidor: " + e.getMessage());
-                 request.getRequestDispatcher("/identificar.jsp").forward(request, response);
+                 // CORRECCIÓN: Ruta exacta para el forward
+                 request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
             } catch (Exception ex) {
                 System.out.println("Error grave: " + ex.getMessage());
             }
@@ -55,47 +59,70 @@ public class srvUsuario extends HttpServlet {
         Usuario usuarioInput;
         Usuario usuarioLogueado;
         
-        // 1. Capturamos los datos del formulario (txtUsu, txtPass)
         usuarioInput = this.obtenerDatos(request);
 
         try {
             dao = new DAOUSUARIO();
-            // 2. Consultamos a la base de datos
             usuarioLogueado = dao.identificar(usuarioInput);
 
             if (usuarioLogueado != null) {
                 // --- LOGIN EXITOSO ---
-                
                 sesion = request.getSession();
                 sesion.setAttribute("usuario", usuarioLogueado);
 
-                // Obtenemos la persona que está dentro del usuario para verificar su tipo
                 Persona persona = usuarioLogueado.getPersona();
 
-                // 3. Verificamos el ROL usando Polimorfismo (instanceof)
                 if (persona instanceof Empleado) {
+                    Empleado emp = (Empleado) persona;
+                    String codigoRol = "";
                     
-                    // Es un EMPLEADO -> Redirigir a menú de empleado
-                    request.setAttribute("msj", "Bienvenido Empleado: " + persona.getNombre());
-                    request.getRequestDispatcher("/principalEmpleado.jsp").forward(request, response);
+                    if(emp.getCodigoRol() != null) {
+                        codigoRol = emp.getCodigoRol().getCodigoRol(); 
+                    }
+
+                    // REDIRECCIONES SEGÚN TU ESTRUCTURA DE ARCHIVOS REAL
+                    switch (codigoRol) {
+                        case "ADM": // Administrador
+                             request.setAttribute("msj", "Bienvenido Admin: " + emp.getNombre());
+                             // OJO: No vi un "Admin.jsp" en tu foto, redirijo a Docentes por ahora o crea el archivo
+                             request.getRequestDispatcher(CARPETA_VISTAS + "Docentes.jsp").forward(request, response);
+                             break;
+                        case "DOC": // Docente
+                             request.setAttribute("msj", "Bienvenido Docente: " + emp.getNombre());
+                             // CORRECCIÓN: Nombre exacto según tu foto
+                             request.getRequestDispatcher(CARPETA_VISTAS + "Docentes.jsp").forward(request, response);
+                             break;
+                        case "SEC": // Secretaria
+                             request.setAttribute("msj", "Bienvenida Secretaria: " + emp.getNombre());
+                             // CORRECCIÓN: Nombre exacto según tu foto
+                             request.getRequestDispatcher(CARPETA_VISTAS + "Secretaria.jsp").forward(request, response);
+                             break;
+                        default: 
+                             request.setAttribute("msj", "Bienvenido Empleado: " + emp.getNombre());
+                             // Redirige a una página por defecto si no coincide el rol
+                             request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
+                             break;
+                    }
 
                 } else if (persona instanceof Estudiante) {
-                    
-                    // Es un ESTUDIANTE -> Redirigir a menú de estudiante
                     request.setAttribute("msj", "Bienvenido Estudiante: " + persona.getNombre());
-                    request.getRequestDispatcher("/principalEstudiante.jsp").forward(request, response);
+                    // CORRECCIÓN: Nombre exacto según tu foto
+                    request.getRequestDispatcher(CARPETA_VISTAS + "Estudiantes.jsp").forward(request, response);
 
-                } 
+                } else {
+                    request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
+                }
 
             } else {
                 // --- LOGIN FALLIDO ---
                 request.setAttribute("msj", "Credenciales Incorrectas");
-                request.getRequestDispatcher("/identificar.jsp").forward(request, response);
+                request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             request.setAttribute("msj", "Error de Base de Datos: " + e.getMessage());
-            request.getRequestDispatcher("/identificar.jsp").forward(request, response);
+            request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
         }
     }
 
@@ -103,28 +130,19 @@ public class srvUsuario extends HttpServlet {
         HttpSession sesion = request.getSession();
         sesion.removeAttribute("usuario");
         sesion.invalidate();
-        response.sendRedirect("identificar.jsp");
+        // Redirigir al login correcto
+        response.sendRedirect(request.getContextPath() + CARPETA_VISTAS + "login.jsp");
     }
 
-    // Este método es CLAVE: Adapta los inputs del JSP a la estructura que pide tu DAO
     private Usuario obtenerDatos(HttpServletRequest request) {
         Usuario u = new Usuario();
-        
-        // Tu DAO busca: user.getPersona().getCodigoPersona()
-        // Por eso creamos una Persona y le seteamos el usuario del form
         Persona p = new Persona();
-        p.setCodigoPersona(request.getParameter("txtUsu")); 
-        
-        // Asignamos la persona al usuario
+        p.setCodigoPersona(request.getParameter("usuario")); 
         u.setPersona(p); 
-        
-        // Tu DAO busca: user.getPassword()
-        u.setPassword(request.getParameter("txtPass")); 
-        
+        u.setPassword(request.getParameter("password")); 
         return u;
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods">
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -136,5 +154,4 @@ public class srvUsuario extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response);
     }
-    // </editor-fold>
 }

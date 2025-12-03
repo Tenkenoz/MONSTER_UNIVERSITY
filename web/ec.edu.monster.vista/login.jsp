@@ -11,30 +11,50 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Iniciar Sesión</title>
         <link rel="stylesheet" href="../dist/estilos/login.css">
+        <style>
+            .error-msg {
+                color: red;
+                text-align: center;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
 
-</head>
+    <body>
 
-<body>
+        <div class="login-card">
 
-    <div class="login-card">
+            <h2>Bienvenido</h2>
+            
+            <%-- Mostrar mensaje de error si existe --%>
+            <% 
+                if(request.getAttribute("msj") != null) { 
+            %>
+                <div class="error-msg">
+                    <%= request.getAttribute("msj") %>
+                </div>
+            <% } %>
 
-        <h2>Bienvenido</h2>
+            <form action="${pageContext.request.contextPath}/srvUsuario" method="POST">
+                
+                <input type="hidden" name="accion" value="verificar">
 
-        <form>
-            <input type="email" class="input-box" placeholder="Correo electrónico">
-            <input type="password" class="input-box" placeholder="Contraseña">
+                <input name="usuario" type="text" class="input-box" placeholder="Usuario / Cédula" required>
+                
+                <input name="password" type="password" class="input-box" placeholder="Contraseña" required>
 
-            <button class="btn-login">INGRESAR</button>
+                <button type="submit" class="btn-login">INGRESAR</button>
 
-            <div class="links">
-                <a href="#">¿Olvidaste tu contraseña?</a>
-                <a href="#">Registrarse</a>
-            </div>
+                <div class="links">
+                    <a href="#">¿Olvidaste tu contraseña?</a>
+                    <a href="#">Registrarse</a>
+                </div>
 
-        </form>
+            </form>
 
-    </div>
+        </div>
 
-</body>
+    </body>
 </html>
 

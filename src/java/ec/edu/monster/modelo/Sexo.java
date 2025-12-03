@@ -8,7 +8,7 @@ package ec.edu.monster.modelo;
  *
  * @author erick
  */
-class Sexo {
+public class Sexo {
     private String codigoSexo;  // <p> Characters (1)
     private String descSexo;    // Variable characters (50)
 
