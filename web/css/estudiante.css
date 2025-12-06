@@ -1,0 +1,170 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 5 dic 2025, 23:36:02
+    Author     : erick
+*/
+
+ /* ================= ESTILO MONSTERS UNIVERSITY ================= */
+ body {
+            margin: 0;
+            padding: 0;
+            background: url('../resource/FondoEstu.jpg') no-repeat center center fixed; 
+            background-size: cover;
+            font-family: 'Roboto', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+}
+
+        /* Efecto de superposición azulada oscura para leer mejor */
+body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 40, 85, 0.4); /* Azul MU con transparencia */
+            z-index: 0;
+}
+
+        /* Contenedor Principal (Tarjeta de Estudiante) */
+        .mu-card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.85); /* Efecto vidrio blanco */
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            width: 800px;
+            max-width: 90%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Cabecera de la tarjeta */
+        .mu-header {
+            background-color: #005a9c; /* Azul Monsters University */
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 5px solid #fff;
+        }
+
+        .mu-logo-text {
+            font-family: 'Graduate', serif; /* Fuente estilo universitario */
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Cuerpo de la tarjeta */
+        .mu-body {
+            display: flex;
+            padding: 30px;
+            gap: 30px;
+            align-items: center;
+        }
+
+        /* Columna Izquierda: Foto y Rol */
+        .profile-section {
+            flex: 1;
+            text-align: center;
+            border-right: 2px dashed #ccc;
+            padding-right: 30px;
+        }
+
+        .avatar-circle {
+            width: 150px;
+            height: 150px;
+            background-color: #76c043; /* Verde Mike Wazowski */
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            color: white;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .role-badge {
+            background-color: #005a9c;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-family: 'Graduate', serif;
+            font-size: 1.2rem;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Columna Derecha: Datos */
+        .info-section {
+            flex: 2;
+        }
+
+        .welcome-title {
+            color: #002855;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #76c043;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            font-size: 1.1rem;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            align-self: center;
+        }
+
+        .value {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Footer y Botón */
+        .mu-footer {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-logout {
+            background-color: #c0392b; /* Rojo para salir */
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-family: 'Roboto', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-logout:hover {
+            background-color: #a93226;
+            transform: scale(1.05);
+        }

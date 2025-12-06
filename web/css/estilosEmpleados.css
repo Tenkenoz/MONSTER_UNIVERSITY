@@ -1,0 +1,171 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 6 dic 2025, 0:04:46
+    Author     : erick
+*/
+
+/* estilosEmpleados.css */
+
+/* Fuente oficial y robusta */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    /* La ruta que pediste */
+    background: url('../resource/FondoPag.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Roboto Condensed', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Oscurecer un poco el fondo para que la credencial resalte */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+}
+
+/* Contenedor de la Credencial */
+.id-badge-container {
+    position: relative;
+    z-index: 1;
+    width: 450px;
+    background-color: #f4f4f4;
+    border-radius: 15px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    overflow: hidden;
+    transform: rotate(-1deg); /* Un ligero giro para realismo */
+    border: 1px solid #999;
+}
+
+/* Agujero para el cordón de la credencial */
+.badge-hole {
+    width: 60px;
+    height: 15px;
+    background: #333;
+    margin: 15px auto 5px;
+    border-radius: 10px;
+}
+
+/* CABECERA: Aquí destacamos el ROL */
+.badge-header {
+    text-align: center;
+    padding: 15px 0;
+    color: white;
+    text-transform: uppercase;
+    /* Un degradado metálico/azul oscuro por defecto */
+    background: linear-gradient(135deg, #1c2e4a 0%, #2b456b 100%);
+    border-bottom: 4px solid #ffd700; /* Línea dorada */
+}
+
+.mu-title {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    opacity: 0.8;
+}
+
+.role-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 2.5rem; /* TAMAÑO GIGANTE PARA EL ROL */
+    margin: 5px 0;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
+}
+
+/* Cuerpo de la credencial */
+.badge-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.photo-frame {
+    width: 140px;
+    height: 140px;
+    background-color: #ddd;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4rem;
+    color: #555;
+    background-image: repeating-linear-gradient(45deg, #ccc 0, #ccc 1px, transparent 0, transparent 50%);
+    background-size: 10px 10px;
+}
+
+.employee-name {
+    font-size: 1.8rem;
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.employee-id {
+    font-family: 'Courier New', monospace;
+    color: #d32f2f; /* Rojo tipo sello */
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+.details-grid {
+    width: 100%;
+    border-top: 2px dashed #bbb;
+    padding-top: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.detail-item strong {
+    display: block;
+    color: #222;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+/* Footer y Botón */
+.badge-footer {
+    background-color: #e0e0e0;
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid #ccc;
+}
+
+.btn-exit {
+    display: inline-block;
+    padding: 10px 30px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.btn-exit:hover {
+    background-color: #000;
+}
+
+/* CLASES ESPECÍFICAS PARA COLORES DE ROL */
+.bg-admin { background: linear-gradient(135deg, #800000 0%, #a00000 100%); border-bottom-color: #000; } /* Rojo Oscuro */
+.bg-docente { background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%); border-bottom-color: #ffd700; } /* Verde Académico */
+.bg-secretaria { background: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%); border-bottom-color: #3e2723; } /* Ámbar/Naranja */

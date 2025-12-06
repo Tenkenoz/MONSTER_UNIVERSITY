@@ -16,8 +16,6 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet(name = "srvUsuario", urlPatterns = {"/srvUsuario"})
 public class srvUsuario extends HttpServlet {
 
-    // DEFINIMOS LA RUTA BASE SEGÚN TU IMAGEN
-    // Esto apunta a la carpeta "ec.edu.monster.vista" dentro de Web Pages
     private static final String CARPETA_VISTAS = "/ec.edu.monster.vista/";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -35,7 +33,6 @@ public class srvUsuario extends HttpServlet {
                         cerrarsession(request, response);
                         break;
                     default:
-                        // CORRECCIÓN: Redirige a login.jsp en su carpeta correcta
                         response.sendRedirect(request.getContextPath() + CARPETA_VISTAS + "login.jsp");
                 }
             } else {
@@ -66,7 +63,7 @@ public class srvUsuario extends HttpServlet {
             usuarioLogueado = dao.identificar(usuarioInput);
 
             if (usuarioLogueado != null) {
-                // --- LOGIN EXITOSO ---
+    
                 sesion = request.getSession();
                 sesion.setAttribute("usuario", usuarioLogueado);
 
@@ -74,54 +71,60 @@ public class srvUsuario extends HttpServlet {
 
                 if (persona instanceof Empleado) {
                     Empleado emp = (Empleado) persona;
+                    request.setAttribute("empleado",emp);
                     String codigoRol = "";
                     
                     if(emp.getCodigoRol() != null) {
                         codigoRol = emp.getCodigoRol().getCodigoRol(); 
                     }
-
+                            
                     // REDIRECCIONES SEGÚN TU ESTRUCTURA DE ARCHIVOS REAL
                     switch (codigoRol) {
-                        case "ADM": // Administrador
-                             request.setAttribute("msj", "Bienvenido Admin: " + emp.getNombre());
-                             // OJO: No vi un "Admin.jsp" en tu foto, redirijo a Docentes por ahora o crea el archivo
-                             request.getRequestDispatcher(CARPETA_VISTAS + "Docentes.jsp").forward(request, response);
+                        case "ADM": 
+                             request.setAttribute("msj", "Bienvenid@ Administrador: " + emp.getNombre());
+                             
+                             this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "Administradores.jsp").forward(request, response);
                              break;
-                        case "DOC": // Docente
-                             request.setAttribute("msj", "Bienvenido Docente: " + emp.getNombre());
-                             // CORRECCIÓN: Nombre exacto según tu foto
-                             request.getRequestDispatcher(CARPETA_VISTAS + "Docentes.jsp").forward(request, response);
+                        case "DOC": 
+                             request.setAttribute("msj", "Bienvenid@ Docente: " + emp.getNombre());
+                             this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "Docentes.jsp").forward(request, response);
                              break;
-                        case "SEC": // Secretaria
-                             request.setAttribute("msj", "Bienvenida Secretaria: " + emp.getNombre());
-                             // CORRECCIÓN: Nombre exacto según tu foto
-                             request.getRequestDispatcher(CARPETA_VISTAS + "Secretaria.jsp").forward(request, response);
+                        case "SEC": 
+                             request.setAttribute("msj", "Bienvenid@ Secretaria: " + emp.getNombre());
+                             this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "Secretaria.jsp").forward(request, response);
+                             break;
+                        case "INV":
+                             request.setAttribute("msj", "Bienvenid@ invitado: " + emp.getNombre());
+                             this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "Invitados.jsp").forward(request, response);
                              break;
                         default: 
-                             request.setAttribute("msj", "Bienvenido Empleado: " + emp.getNombre());
-                             // Redirige a una página por defecto si no coincide el rol
-                             request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
+                             request.setAttribute("msj", "Bienvenid@ invitado: " + emp.getNombre());
+                             this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "Invitados.jsp").forward(request, response);
                              break;
                     }
 
                 } else if (persona instanceof Estudiante) {
+                    Estudiante est = (Estudiante) persona;
+                    request.setAttribute("estudiante",est);
                     request.setAttribute("msj", "Bienvenido Estudiante: " + persona.getNombre());
-                    // CORRECCIÓN: Nombre exacto según tu foto
-                    request.getRequestDispatcher(CARPETA_VISTAS + "Estudiantes.jsp").forward(request, response);
+                    this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "Estudiantes.jsp").forward(request, response);
+                             
 
                 } else {
-                    request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
+                    this.getServletConfig().getServletContext().getRequestDispatcher(CARPETA_VISTAS+ "login.jsp").forward(request, response);
+                    request.setAttribute("msjerror", "Usuario no encontrado");
+                    
                 }
 
             } else {
-                // --- LOGIN FALLIDO ---
-                request.setAttribute("msj", "Credenciales Incorrectas");
+
+                request.setAttribute("msjerror", "Credenciales Incorrectas");
                 request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("msj", "Error de Base de Datos: " + e.getMessage());
+            request.setAttribute("msjerror", "Error de Base de Datos: " + e.getMessage());
             request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
         }
     }
@@ -130,16 +133,15 @@ public class srvUsuario extends HttpServlet {
         HttpSession sesion = request.getSession();
         sesion.removeAttribute("usuario");
         sesion.invalidate();
-        // Redirigir al login correcto
         response.sendRedirect(request.getContextPath() + CARPETA_VISTAS + "login.jsp");
     }
 
     private Usuario obtenerDatos(HttpServletRequest request) {
         Usuario u = new Usuario();
         Persona p = new Persona();
-        p.setCodigoPersona(request.getParameter("usuario")); 
+        p.setEmail(request.getParameter("txtEmail")); 
         u.setPersona(p); 
-        u.setPassword(request.getParameter("password")); 
+        u.setPassword(request.getParameter("txtPassword")); 
         return u;
     }
 

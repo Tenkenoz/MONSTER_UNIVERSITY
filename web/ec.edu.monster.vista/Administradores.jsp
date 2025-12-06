@@ -1,6 +1,6 @@
 <%-- 
-    Document   : Docentes
-    Created on : 30 nov 2025, 15:53:56
+    Document   : Administradores
+    Created on : 5 dic 2025, 21:20:48
     Author     : erick
 --%>
 
@@ -9,7 +9,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>MU | Portal Docente</title>
+    <title>MU | Panel Administrativo</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilosEmpleados.css">
 </head>
 <body>
@@ -17,9 +17,9 @@
     <div class="id-badge-container">
         <div class="badge-hole"></div>
         
-        <div class="badge-header bg-docente">
+        <div class="badge-header bg-admin">
             <div class="mu-title">MONSTERS UNIVERSITY</div>
-            <div class="role-title">DOCENTE</div>
+            <div class="role-title">ADMINISTRADOR</div>
         </div>
 
         <div class="badge-body">
@@ -32,8 +32,8 @@
 
             <div class="details-grid">
                 <div class="detail-item">
-                    <strong>Facultad</strong>
-                    DOCENCIA E INVESTIGACIÓN
+                    <strong>Departamento</strong>
+                    ADMINISTRACIÓN
                 </div>
                 <div class="detail-item">
                     <strong>Cod. Empleado</strong>

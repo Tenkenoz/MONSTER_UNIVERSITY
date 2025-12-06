@@ -10,7 +10,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Iniciar Sesión</title>
-        <link rel="stylesheet" href="../dist/estilos/login.css">
+        <link rel="stylesheet" href="../css/login.css">
         <style>
             .error-msg {
                 color: red;
@@ -29,10 +29,10 @@
             
             <%-- Mostrar mensaje de error si existe --%>
             <% 
-                if(request.getAttribute("msj") != null) { 
+                if(request.getAttribute("msjerror") != null) { 
             %>
                 <div class="error-msg">
-                    <%= request.getAttribute("msj") %>
+                    <%= request.getAttribute("msjerror") %>
                 </div>
             <% } %>
 
@@ -40,9 +40,9 @@
                 
                 <input type="hidden" name="accion" value="verificar">
 
-                <input name="usuario" type="text" class="input-box" placeholder="Usuario / Cédula" required>
+                <input name="txtEmail" type="text" class="input-box" placeholder="Usuario / Cédula" required>
                 
-                <input name="password" type="password" class="input-box" placeholder="Contraseña" required>
+                <input name="txtPassword" type="password" class="input-box" placeholder="Contraseña" required>
 
                 <button type="submit" class="btn-login">INGRESAR</button>
 

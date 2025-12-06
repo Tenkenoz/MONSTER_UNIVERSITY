@@ -21,25 +21,29 @@ public class DAOUSUARIO extends Conexion {
         Statement st = null;
         ResultSet rs = null;
 
-        // SQL Optimizado: Agregamos R.PEROL_CODIGO para saber el tipo de empleado
+        // 1. Recuperamos estrictamente el EMAIL del objeto
+        String inputEmail = user.getPersona().getEmail(); 
+        String inputPassword = user.getPassword();
+
+        // SQL: Solo busca coincidencia por EMAIL
         String sql = "SELECT "
-                + "U.XEUSU_PASWD, U.XEEST_CODIGO, "                             // Datos Usuario
-                + "P.PEPER_CODIGO, P.PEPER_NOMBRE, P.PEPER_APELLIDO, "          // Datos Persona
-                + "EMP.PEEMP_CODIGO, "                                          // Datos Empleado
-                + "R.PEROL_CODIGO, R.PEROL_DESCRI, "                            // <--- IMPORTANTE: Traemos el CÓDIGO del Rol
-                + "EST.AEEST_CODIGO, C.AECAR_NOMBRE "                           // Datos Estudiante y Carrera
+                + "U.XEUSU_LOGIN, U.XEUSU_PASWD, U.XEEST_CODIGO, "              
+                + "P.PEPER_CODIGO, P.PEPER_NOMBRE, P.PEPER_APELLIDO, P.PEPER_EMAIL, " 
+                + "EMP.PEEMP_CODIGO, "                                              
+                + "R.PEROL_CODIGO, R.PEROL_DESCRI, "                             
+                + "EST.AEEST_CODIGO, C.AECAR_NOMBRE "                            
                 + "FROM XEUSU_USUAR U "
                 + "INNER JOIN PEPER_PERS P ON U.PEPER_CODIGO = P.PEPER_CODIGO "
-                // Join para ver si es EMPLEADO (y obtener su Rol)
+                // Join para Empleados
                 + "LEFT JOIN PEEMP_EMPLE EMP ON P.PEPER_CODIGO = EMP.PEPER_CODIGO "
                 + "LEFT JOIN PEROL_ROLES R ON EMP.PEROL_CODIGO = R.PEROL_CODIGO AND EMP.PEDEP_CODIGO = R.PEDEP_CODIGO "
-                // Join para ver si es ESTUDIANTE (y obtener su Carrera)
+                // Join para Estudiantes
                 + "LEFT JOIN AEEST_ESTU EST ON P.PEPER_CODIGO = EST.PEPER_CODIGO "
                 + "LEFT JOIN AECAR_CARR C ON EST.AECAR_CODIGO = C.AECAR_CODIGO "
-                // Filtros de Login
+                // Filtros (SOLO EMAIL Y PASSWORD)
                 + "WHERE U.XEEST_CODIGO = '1' " 
-                + "AND P.PEPER_CODIGO = '" + user.getPersona().getCodigoPersona() + "' " 
-                + "AND U.XEUSU_PASWD = '" + user.getPassword() + "'";
+                + "AND P.PEPER_EMAIL = '" + inputEmail + "' "  // <--- CAMBIO: Solo busca por email
+                + "AND U.XEUSU_PASWD = '" + inputPassword + "'";
 
         con = new Conexion();
         try {
@@ -50,65 +54,67 @@ public class DAOUSUARIO extends Conexion {
             if (rs.next() == true) {
                 usu = new Usuario();
 
-                // 1. Llenar datos básicos del Usuario
+                // Datos básicos del Usuario
                 usu.setPassword(rs.getString("XEUSU_PASWD"));
-
-                // Llenamos el Estado
                 usu.setCodEstado(new Estado());
                 usu.getCodEstado().setCodEstado(rs.getString("XEEST_CODIGO"));
 
-                // --- LÓGICA PARA DETERMINAR EL ROL (Polimorfismo) ---
+                // --- LÓGICA DE ROLES ---
                 String codEmpleado = rs.getString("PEEMP_CODIGO");
                 String codEstudiante = rs.getString("AEEST_CODIGO");
 
                 if (codEmpleado != null) {
-                    // === ES UN EMPLEADO ===
+                    // === CASO 1: ES UN EMPLEADO ===
                     Empleado empleado = new Empleado();
 
-                    // Datos de Persona
                     empleado.setCodigoPersona(rs.getString("PEPER_CODIGO"));
                     empleado.setNombre(rs.getString("PEPER_NOMBRE"));
                     empleado.setApellido(rs.getString("PEPER_APELLIDO"));
+                    empleado.setEmail(rs.getString("PEPER_EMAIL"));
                     empleado.setCodigoEmple(codEmpleado);
 
-                    // Datos del Rol (Composición)
+                    // Rol
                     empleado.setCodigoRol(new Roles());
-                    // AQUÍ ESTÁ LA CLAVE: Guardamos el código (ej: ADM) y la descripción
                     empleado.getCodigoRol().setCodigoRol(rs.getString("PEROL_CODIGO")); 
                     empleado.getCodigoRol().setDescriRol(rs.getString("PEROL_DESCRI"));
 
-                    // Asignamos el Empleado al Usuario
                     usu.setPersona(empleado);
 
                 } else if (codEstudiante != null) {
-                    // === ES UN ESTUDIANTE ===
+                    // === CASO 2: ES UN ESTUDIANTE ===
                     Estudiante estudiante = new Estudiante();
 
-                    // Datos de Persona
                     estudiante.setCodigoPersona(rs.getString("PEPER_CODIGO"));
                     estudiante.setNombre(rs.getString("PEPER_NOMBRE"));
                     estudiante.setApellido(rs.getString("PEPER_APELLIDO"));
+                    estudiante.setEmail(rs.getString("PEPER_EMAIL"));
                     estudiante.setCodigoEstu(codEstudiante);
 
-                    // Datos de Carrera (Composición)
+                    // Carrera
                     estudiante.setCodigoCarr(new Carrera());
                     estudiante.getCodigoCarr().setNombreCarr(rs.getString("AECAR_NOMBRE"));
 
-                    // Asignamos el Estudiante al Usuario
                     usu.setPersona(estudiante);
 
                 } else {
-                    // Solo es Persona (Usuario sin rol específico)
-                    Persona p = new Persona();
-                    p.setCodigoPersona(rs.getString("PEPER_CODIGO"));
-                    p.setNombre(rs.getString("PEPER_NOMBRE"));
-                    p.setApellido(rs.getString("PEPER_APELLIDO"));
-                    usu.setPersona(p);
+                    // === CASO 3: INVITADO (Sin rol específico en BD) ===
+                    Empleado invitado = new Empleado();
+
+                    invitado.setCodigoPersona(rs.getString("PEPER_CODIGO"));
+                    invitado.setNombre(rs.getString("PEPER_NOMBRE"));
+                    invitado.setApellido(rs.getString("PEPER_APELLIDO"));
+                    invitado.setEmail(rs.getString("PEPER_EMAIL"));
+                    
+                    invitado.setCodigoRol(new Roles());
+                    invitado.getCodigoRol().setCodigoRol("INV");
+                    invitado.getCodigoRol().setDescriRol("INVITADO");
+
+                    usu.setPersona(invitado);
                 }
             }
         } catch (Exception e) {
             System.out.println("Error en DAOUSUARIO: " + e.getMessage());
-            throw e; // Recomendado: relanzar la excepción para que el Servlet sepa que falló
+            throw e; 
         } finally {
             if (rs != null && !rs.isClosed()) rs.close();
             if (st != null && !st.isClosed()) st.close();

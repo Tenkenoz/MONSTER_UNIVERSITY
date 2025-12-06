@@ -1,0 +1,167 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 6 dic 2025, 0:08:38
+    Author     : erick
+*/
+
+/* estilosInvitado.css */
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Roboto:wght@400;500&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    /* Fondo solicitado */
+    background: url('../resource/FondoInv.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Roboto', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Capa oscura para resaltar el pase */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 0;
+}
+
+/* Contenedor del Pase de Visitante */
+.visitor-pass {
+    position: relative;
+    z-index: 1;
+    width: 380px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    /* Borde superior grueso morado */
+    border-top: 20px solid #673ab7; 
+}
+
+/* Simulación de CLIP metálico en la parte superior */
+.pass-clip {
+    width: 80px;
+    height: 25px;
+    background: linear-gradient(to bottom, #999, #ccc, #999);
+    margin: -20px auto 10px; /* Sube para tapar el borde */
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    position: relative;
+    top: 0;
+}
+
+.header-section {
+    text-align: center;
+    padding-top: 20px;
+}
+
+.mu-logo-small {
+    font-weight: bold;
+    color: #555;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+}
+
+/* Título Grande de VISITOR */
+.visitor-title {
+    font-family: 'Teko', sans-serif; /* Fuente alta y condensada */
+    font-size: 4rem;
+    color: #673ab7; /* Morado */
+    line-height: 1;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    background-color: #673ab7;
+    color: white;
+    display: inline-block;
+    padding: 2px 15px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+/* Área de contenido */
+.pass-body {
+    padding: 0 30px 20px;
+    text-align: center;
+}
+
+.guest-icon {
+    font-size: 3rem;
+    color: #ccc;
+    border: 2px dashed #ccc;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.guest-name {
+    font-size: 1.4rem;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.guest-info {
+    color: #777;
+    font-size: 0.95rem;
+    margin-bottom: 5px;
+}
+
+/* Simulación de Código de Barras */
+.barcode-strip {
+    height: 40px;
+    width: 80%;
+    margin: 20px auto;
+    /* Generador CSS de código de barras simple */
+    background: repeating-linear-gradient(
+        90deg,
+        #000 1px, #000 3px,
+        #fff 3px, #fff 6px,
+        #000 6px, #000 9px,
+        #fff 9px, #fff 12px
+    );
+}
+
+.pass-footer {
+    background-color: #f0f0f0;
+    padding: 15px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+    border-top: 1px solid #ddd;
+}
+
+.btn-leave {
+    display: block;
+    margin: 10px auto 0;
+    text-decoration: none;
+    color: #673ab7;
+    font-weight: bold;
+    border: 1px solid #673ab7;
+    padding: 5px 15px;
+    border-radius: 20px;
+    width: fit-content;
+    transition: all 0.3s;
+}
+
+.btn-leave:hover {
+    background-color: #673ab7;
+    color: white;
+}

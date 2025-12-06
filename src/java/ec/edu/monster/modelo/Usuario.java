@@ -18,7 +18,17 @@ public class Usuario {
     private String pjefirma;
     private String recuperacion;
     private Estado codEstado;   // <f1> Characters (1) (FK a ESTADO)
+    private Date expiracion;
 
+    public Date getExpiracion() {
+        return expiracion;
+    }
+
+    public void setExpiracion(Date expiracion) {
+        this.expiracion = expiracion;
+    }
+    
+           
     public Estado getCodEstado() {
         return codEstado;
     }
