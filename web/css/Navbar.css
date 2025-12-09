@@ -1,0 +1,159 @@
+
+    /* ================= RESET & BASE ================= */
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background-color: #f0f2f5;
+    }
+
+    /* ================= NAVBAR PRINCIPAL ================= */
+    .mu-navbar {
+        width: 100%;
+        /* Degradado sutil para dar volumen */
+        background: linear-gradient(to right, #002855, #003366);
+        color: white;
+        padding: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 1000;
+        position: relative;
+        border-bottom: 3px solid #001a38; /* Borde inferior oscuro */
+    }
+
+    /* Contenedor de la lista principal */
+    .mu-navbar > ul {
+        list-style: none;
+        display: flex;
+        padding: 0;
+        margin: 0;
+        height: 60px; /* Altura fija para centrar verticalmente */
+        align-items: center;
+    }
+
+    .mu-navbar ul li {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Enlaces Nivel 1 */
+    .mu-navbar > ul > li > a {
+        display: flex;
+        align-items: center;
+        padding: 0 25px;
+        height: 100%;
+        color: #ecf0f1;
+        text-decoration: none;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        border-bottom: 4px solid transparent; /* Línea invisible por defecto */
+    }
+
+    /* Hover Nivel 1: Fondo suave y línea Verde Mike Wazowski */
+    .mu-navbar > ul > li:hover > a {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border-bottom: 4px solid #76c043; 
+    }
+
+    /* ================= SUBMENÚS (Nivel 2 y 3) ================= */
+    
+    /* Base para todos los submenús */
+    .mu-navbar ul ul {
+        position: absolute;
+        background: #003366;
+        min-width: 280px; /* Un poco más ancho para nombres largos */
+        list-style: none;
+        padding: 10px 0;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* Sombra potente */
+        border-radius: 0 0 8px 8px; /* Bordes redondeados abajo */
+        border-top: 2px solid #76c043; /* Línea verde superior */
+        
+        /* Animación de entrada */
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(15px); /* Empieza un poco más abajo */
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 1000;
+    }
+
+    /* Mostrar Submenús al Hover */
+    .mu-navbar ul li:hover > ul {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0); /* Sube a su posición original */
+    }
+
+    /* Posición Nivel 2 */
+    .mu-navbar > ul > li > ul {
+        top: 100%;
+        left: 0;
+    }
+
+    /* Posición Nivel 3 */
+    .mu-navbar ul ul ul {
+        top: 0;
+        left: 100%; /* Justo a la derecha */
+        margin-top: -12px; /* Alineación fina */
+        border-radius: 8px; /* Redondeado completo */
+        border-top: none;
+        border-left: 2px solid #76c043; /* Línea verde a la izquierda */
+    }
+
+    /* Enlaces de Submenús */
+    .mu-navbar ul ul a {
+        display: block;
+        padding: 12px 20px;
+        color: #ddd;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent; /* Borde izquierdo invisible */
+        position: relative;
+    }
+
+    /* Hover en Submenús */
+    .mu-navbar ul ul a:hover {
+        background: #004080;
+        color: white;
+        border-left: 3px solid #76c043; /* Indicador verde */
+        padding-left: 28px; /* Pequeño desplazamiento a la derecha */
+    }
+
+    /* ================= DETALLES DE FLECHAS ================= */
+    
+    /* Flechita automática para padres de Nivel 3 (Detecta si hay un ul dentro) */
+    /* Nota: Esto requiere que el <li> padre tenga una clase o lógica CSS avanzada. 
+       Como usamos JSP puro, usaremos el carácter '▶' que pusiste en el HTML, 
+       pero aquí le damos estilo para que se vaya a la derecha */
+    
+    .mu-navbar ul ul li a {
+        display: flex;
+        justify-content: space-between; /* Texto a la izq, flecha a la der */
+        align-items: center;
+    }
+
+    /* ================= ÁREA DE TRABAJO (IFRAME) ================= */
+    .workspace-container {
+        flex-grow: 1;
+        background-color: #eef1f5; /* Color gris muy suave para el fondo */
+        position: relative;
+        width: 100%;
+        box-shadow: inset 0 5px 15px rgba(0,0,0,0.05); /* Sombra interna sutil */
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }

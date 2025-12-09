@@ -1,65 +1,107 @@
-/*
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
-*/
-/* 
-    Created on : 28 nov 2025, 09:53:01
-    Author     : MEGAPC
+/* Created on : 28 nov 2025
+    Author     : MEGAPC / Unified Version
 */
 
+/* ================= RESET & BODY ================= */
 body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
+    /* Fondo con superposición oscura para resaltar el card */
     background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%),
-        url("../resource/fondo.jpg") no-repeat center center/cover;
-
+                url("../resource/fondo_1.jpg") no-repeat center center/cover;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
 
+/* ================= LOGIN CARD (GLASSMORPHISM) ================= */
 .login-card {
     width: 400px;
-    padding: 40px;
+    /* Padding superior extra para acomodar el logo flotante */
+    padding: 55px 40px 40px 40px; 
     border-radius: 20px;
-
-    /* Card blanco semitransparente */
-    background: rgba(255, 255, 255, 0.65);
+    
+    /* Efecto Vidrio */
+    background: rgba(255, 255, 255, 0.75); /* Un poco más opaco para legibilidad */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     text-align: center;
     color: #333;
+    position: relative; /* Necesario para el logo absoluto */
 }
+
+.login-card h2 {
+    margin-top: 15px;
+    margin-bottom: 20px;
+    font-size: 28px;
+    color: #222;
+    font-weight: normal;
+}
+
+/* ================= LOGO FLOTANTE ================= */
+.logo-circle {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: white;
+    padding: 5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.logo-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Fallback si no carga la imagen */
+.logo-circle:not(:has(img[src]))::before {
+    content: "MU";
+    font-size: 24px;
+    font-weight: bold;
+    color: #0b3f91;
+}
+
+/* ================= FORMULARIO & INPUTS ================= */
 .login-card form {
     display: flex;
     flex-direction: column;
-    align-items: center;   /* Centra los campos */
+    align-items: center;
     width: 100%;
 }
 
-
-.login-card h2 {
-    margin-bottom: 25px;
-    font-size: 28px;
-    color: #222;
-}
-
 .input-box {
-    width: 90%;
-    padding: 12px 15px;
+    width: 100%; /* Ajustado al contenedor del form */
+    box-sizing: border-box; /* Para que el padding no rompa el ancho */
+    padding: 12px 20px;
     border-radius: 30px;
     border: 1px solid #ccc;
-    margin: 12px 0;
+    margin: 10px 0;
     outline: none;
     font-size: 15px;
     background: rgba(255,255,255,0.9);
 }
 
+.input-box:focus {
+    border-color: #0b3f91;
+    box-shadow: 0 0 5px rgba(11, 63, 145, 0.3);
+}
+
+/* ================= BOTONES ================= */
 .btn-login {
     width: 100%;
     padding: 13px;
@@ -69,31 +111,124 @@ body {
     background: #0b3f91;
     color: white;
     font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-login:hover {
+    background: #092e6d;
+}
+
+/* ================= ENLACES ================= */
+.links {
+    margin-top: 15px;
+    width: 100%;
 }
 
 .links a {
-    color: #333;
+    color: #0b3f91;
     text-decoration: none;
     font-weight: bold;
-    display: block;
-    margin: 6px 0;
-}
-
-.links a {
-    color: #333;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.divider {
-    margin: 25px 0 10px 0;
     font-size: 14px;
-    color: #555;
+    display: block;
+    margin: 8px 0;
+    transition: color 0.3s;
 }
 
-.social-login img {
-    width: 40px;
-    margin: 0 10px;
+.links a:hover {
+    color: #092e6d;
+    text-decoration: underline;
+}
+
+/* ================= MENSAJES (Error / Éxito) ================= */
+.error-msg {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.success-msg {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ================= MODAL ================= */
+.modal {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    z-index: 2000; /* Encima de todo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6); /* Fondo oscuro */
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #0b3f91;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
     cursor: pointer;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: #333;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 480px) {
+    .login-card {
+        width: 85%;
+        padding: 45px 20px 30px 20px;
+    }
+    
+    .logo-circle {
+        width: 70px;
+        height: 70px;
+        top: -35px;
+    }
+    
+    .login-card h2 {
+        font-size: 24px;
+    }
 }

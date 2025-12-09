@@ -1,0 +1,137 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 7 dic 2025, 16:41:33
+    Author     : erick
+*/
+
+/* css/cards.css */
+@import url('https://fonts.googleapis.com/css2?family=Graduate&family=Roboto:wght@400;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    /* Fondo de la universidad SOLO para el contenido interno */
+    background: url('../resource/FondoEstu.jpg') no-repeat center center fixed; 
+    background-size: cover;
+    font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Filtro azulado */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 40, 85, 0.5); 
+    z-index: -1;
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mu-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    width: 800px;
+    max-width: 90%;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    animation: fadeInUp 0.8s ease-out; /* Animación suave al cargar */
+}
+
+/* Header de la tarjeta */
+.mu-header {
+    background: linear-gradient(135deg, #005a9c 0%, #003366 100%);
+    color: white;
+    padding: 25px;
+    text-align: center;
+    border-bottom: 4px solid #76c043;
+}
+
+.mu-logo-text {
+    font-family: 'Graduate', serif;
+    font-size: 2.2rem;
+    margin: 0;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
+
+.mu-body {
+    display: flex;
+    padding: 40px;
+    gap: 40px;
+    align-items: center;
+}
+
+/* Avatar */
+.profile-section {
+    flex: 1;
+    text-align: center;
+    border-right: 1px solid rgba(0,0,0,0.1);
+    padding-right: 30px;
+}
+
+.avatar-circle {
+    width: 140px;
+    height: 140px;
+    background: #76c043;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4.5rem;
+    color: white;
+    border: 5px solid white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.role-badge {
+    background: #003366;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+/* Datos */
+.info-section { flex: 2; }
+
+.data-grid {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 15px;
+    align-items: center;
+}
+
+.label {
+    font-weight: bold;
+    color: #444;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.value {
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #333;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    font-weight: 500;
+}

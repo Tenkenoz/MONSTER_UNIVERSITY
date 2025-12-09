@@ -14,6 +14,61 @@ import java.sql.Statement;
  */
 public class DAOUSUARIO extends Conexion {
 
+    public Usuario RecuperarContraseña(Usuario user) throws Exception {
+    Usuario usu = null;
+    Conexion con;
+    Connection cn = null;
+    Statement st = null;
+    ResultSet rs = null;
+
+    String inputEmail = user.getPersona().getEmail(); // SOLO se usa el email
+
+    // SQL: SOLO busca por email
+    String sql = "SELECT "
+            + "U.XEUSU_LOGIN, U.XEUSU_PASWD, U.XEEST_CODIGO, "
+            + "P.PEPER_CODIGO, P.PEPER_NOMBRE, P.PEPER_APELLIDO, P.PEPER_EMAIL "
+            + "FROM XEUSU_USUAR U "
+            + "INNER JOIN PEPER_PERS P ON U.PEPER_CODIGO = P.PEPER_CODIGO "
+            + "WHERE U.XEEST_CODIGO = '1' "
+            + "AND P.PEPER_EMAIL = '" + inputEmail + "'";  // ← SOLO CORREO
+
+    try {
+        con = new Conexion();
+        cn = con.conectar();
+        st = cn.createStatement();
+        rs = st.executeQuery(sql);
+
+        if (rs.next()) {
+            usu = new Usuario();
+
+            usu.setLogin(rs.getString("XEUSU_LOGIN"));
+            usu.setPassword(rs.getString("XEUSU_PASWD")); // ← Aquí RECUPERA la contraseña
+            usu.setCodEstado(new Estado());
+            usu.getCodEstado().setCodEstado(rs.getString("XEEST_CODIGO"));
+
+            Persona p = new Persona();
+            p.setCodigoPersona(rs.getString("PEPER_CODIGO"));
+            p.setNombre(rs.getString("PEPER_NOMBRE"));
+            p.setApellido(rs.getString("PEPER_APELLIDO"));
+            p.setEmail(rs.getString("PEPER_EMAIL"));
+
+            usu.setPersona(p);
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error en RecuperarContraseña: " + e.getMessage());
+        throw e;
+
+    } finally {
+        if (rs != null && !rs.isClosed()) rs.close();
+        if (st != null && !st.isClosed()) st.close();
+        if (cn != null && !cn.isClosed()) cn.close();
+    }
+
+    return usu;
+}
+
+
     public Usuario identificar(Usuario user) throws Exception {
         Usuario usu = null;
         Conexion con;

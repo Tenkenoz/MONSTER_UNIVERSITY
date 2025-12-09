@@ -31,7 +31,7 @@
             <div class="guest-name">${empleado.nombre} ${empleado.apellido}</div>
             
             <div class="guest-info">
-                <strong>ID Ref:</strong> ${empleado.codigoPersona}
+                <strong>CEDULA:</strong> ${empleado.codigoPersona}
             </div>
             
             <div class="guest-info">
@@ -47,9 +47,8 @@
         </div>
 
         <div class="pass-footer">
-            Este pase debe ser devuelto al salir.
             <br>
-            <a href="${pageContext.request.contextPath}/srvUsuario?accion=cerrar" class="btn-leave">Registrar Salida</a>
+            <a href="${pageContext.request.contextPath}/srvUsuario?accion=cerrar" class="btn-leave">Cerrar Sesión</a>
         </div>
     </div>
 
