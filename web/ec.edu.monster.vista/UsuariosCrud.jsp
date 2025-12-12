@@ -203,16 +203,7 @@
                             <input type="text" name="txtTelDom" class="form-control" required>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Contraseña:</label>
-                            <input type="password" name="txtPassword" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Confirmar:</label>
-                            <input type="password" name="txtPassword2" class="form-control" required>
-                        </div>
-                    </div>
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="cerrarModals()">Cancelar</button>

@@ -89,58 +89,67 @@ public class DAOPERSONA extends Conexion {
     }
 
     // --- 2. REGISTRAR (Lógica base) ---
-    public boolean registrarInvitado(Usuario u) throws Exception {
-        boolean registrado = false;
-        Connection cn = null;
-        // ... (Mismo código SQL de INSERT que ya tienes y funciona) ...
-        String sqlPersona = "INSERT INTO PEPER_PERS (PEPER_CODIGO, PSEX_CODIGO, PEESC_CODIGO, PEPER_NOMBRE, PEPER_APELLIDO, PEPER_CEDULA, PEPER_FECHANACI, PEPER_CARGAS, PEPER_DIRECCION, PEPER_CELULAR, PEPER_TELDOM, PEPER_EMAIL) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        String sqlEmple = "INSERT INTO PEEMP_EMPLE (PEEMP_CODIGO, PEDEP_CODIGO, PEROL_CODIGO, PEPER_CODIGO) VALUES (?, 'INV', 'INV', ?)"; 
-        String sqlUsuario = "INSERT INTO XEUSU_USUAR (XEUSU_LOGIN, XEUSU_PASWD, XEEST_CODIGO, PEPER_CODIGO, XEUSU_PIEFIR, XEUSU_FECCRE, XEUSU_FECMOD) VALUES (?, ?, '1', ?, 'FIRMA_INV', NOW(), NOW())";
+public boolean registrarInvitado(Usuario u) throws Exception {
+    boolean registrado = false;
+    Connection cn = null;
+    
+    // SQLs
+    String sqlPersona = "INSERT INTO PEPER_PERS (PEPER_CODIGO, PSEX_CODIGO, PEESC_CODIGO, PEPER_NOMBRE, PEPER_APELLIDO, PEPER_CEDULA, PEPER_FECHANACI, PEPER_CARGAS, PEPER_DIRECCION, PEPER_CELULAR, PEPER_TELDOM, PEPER_EMAIL) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String sqlEmple = "INSERT INTO PEEMP_EMPLE (PEEMP_CODIGO, PEDEP_CODIGO, PEROL_CODIGO, PEPER_CODIGO) VALUES (?, 'INV', 'INV', ?)";
+    
+    // ¡OJO AQUÍ! AGREGAMOS EL CAMPO XEUSU_TOKEN_REC
+    String sqlUsuario = "INSERT INTO XEUSU_USUAR (XEUSU_LOGIN, XEUSU_PASWD, XEEST_CODIGO, PEPER_CODIGO, XEUSU_PIEFIR, XEUSU_FECCRE, XEUSU_FECMOD, XEUSU_TOKEN_REC) VALUES (?, ?, '1', ?, 'FIRMA_INV', NOW(), NOW(), ?)";
 
-        PreparedStatement pstPersona = null, pstEmple = null, pstUsuario = null;
-        try {
-            cn = conectar(); cn.setAutoCommit(false); 
-            Persona p = u.getPersona();
-            
-            pstPersona = cn.prepareStatement(sqlPersona);
-            pstPersona.setString(1, p.getCodigoPersona());
-            pstPersona.setString(2, p.getCodigoSexo().getCodigoSexo());
-            pstPersona.setString(3, p.getCodigoEstciv().getCodigoEstciv());
-            pstPersona.setString(4, p.getNombre());
-            pstPersona.setString(5, p.getApellido());
-            pstPersona.setString(6, p.getCedula());
-            if (p.getFechaNaci() != null) pstPersona.setDate(7, new java.sql.Date(p.getFechaNaci().getTime()));
-            else pstPersona.setNull(7, java.sql.Types.DATE);
-            pstPersona.setInt(8, p.getCargas());
-            pstPersona.setString(9, p.getDireccion());
-            pstPersona.setString(10, p.getCelular());
-            pstPersona.setString(11, p.getTelDom());
-            pstPersona.setString(12, p.getEmail());
-            pstPersona.executeUpdate();
+    PreparedStatement pstPersona = null, pstEmple = null, pstUsuario = null;
+    try {
+        cn = conectar(); cn.setAutoCommit(false); 
+        Persona p = u.getPersona();
+        
+        // 1. Insertar Persona (Igual que antes)
+        pstPersona = cn.prepareStatement(sqlPersona);
+        pstPersona.setString(1, p.getCodigoPersona());
+        pstPersona.setString(2, p.getCodigoSexo().getCodigoSexo());
+        pstPersona.setString(3, p.getCodigoEstciv().getCodigoEstciv());
+        pstPersona.setString(4, p.getNombre());
+        pstPersona.setString(5, p.getApellido());
+        pstPersona.setString(6, p.getCedula());
+        if (p.getFechaNaci() != null) pstPersona.setDate(7, new java.sql.Date(p.getFechaNaci().getTime()));
+        else pstPersona.setNull(7, java.sql.Types.DATE);
+        pstPersona.setInt(8, p.getCargas());
+        pstPersona.setString(9, p.getDireccion());
+        pstPersona.setString(10, p.getCelular());
+        pstPersona.setString(11, p.getTelDom());
+        pstPersona.setString(12, p.getEmail());
+        pstPersona.executeUpdate();
 
-            pstEmple = cn.prepareStatement(sqlEmple);
-            String codigoEmp = "E" + p.getCedula();
-            if(codigoEmp.length() > 10) codigoEmp = codigoEmp.substring(0, 10);
-            pstEmple.setString(1, codigoEmp);
-            pstEmple.setString(2, p.getCodigoPersona());
-            pstEmple.executeUpdate();
+        // 2. Insertar Empleado (Igual que antes)
+        pstEmple = cn.prepareStatement(sqlEmple);
+        String codigoEmp = "E" + p.getCedula();
+        if(codigoEmp.length() > 10) codigoEmp = codigoEmp.substring(0, 10);
+        pstEmple.setString(1, codigoEmp);
+        pstEmple.setString(2, p.getCodigoPersona());
+        pstEmple.executeUpdate();
 
-            pstUsuario = cn.prepareStatement(sqlUsuario);
-            pstUsuario.setString(1, u.getLogin());
-            pstUsuario.setString(2, u.getPassword());
-            pstUsuario.setString(3, p.getCodigoPersona());
-            pstUsuario.executeUpdate();
+        // 3. Insertar Usuario (CON EL TOKEN)
+        pstUsuario = cn.prepareStatement(sqlUsuario);
+        pstUsuario.setString(1, u.getLogin());
+        pstUsuario.setString(2, u.getPassword()); // Ya viene encriptada desde el Servlet
+        pstUsuario.setString(3, p.getCodigoPersona());
+        
+        // AQUÍ GUARDAMOS LA BANDERA "1" (O "0")
+        pstUsuario.setString(4, u.getTokenRecuperacion()); 
+        
+        pstUsuario.executeUpdate();
 
-            cn.commit();
-            registrado = true;
-        } catch (SQLException e) {
-            if (cn != null) cn.rollback(); throw e;
-        } finally {
-            if (cn != null) cn.close();
-        }
-        return registrado;
+        cn.commit();
+        registrado = true;
+    } catch (SQLException e) {
+        if (cn != null) cn.rollback(); throw e;
+    } finally {
+        if (cn != null) cn.close();
     }
-
+    return registrado;
+}
     // --- 3. ACTUALIZAR ---
     public boolean actualizarDatos(Usuario u) throws Exception {
         // ... (Mismo código de update anterior) ...

@@ -5,6 +5,7 @@ import ec.edu.monster.modelo.Persona;
 import ec.edu.monster.modelo.Usuario;
 import ec.edu.monster.modelo.Sexo;
 import ec.edu.monster.modelo.EstadoCivil;
+import ec.edu.monster.modelo.Encriptador; 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import jakarta.servlet.ServletException;
@@ -12,11 +13,19 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+// Imports de Correo
+import jakarta.mail.Message;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+// Imports PDF
 import org.faceless.pdf2.*;
 import java.awt.Color;
 import java.io.OutputStream;
-
 
 @WebServlet(name = "srvPersona", urlPatterns = {"/srvPersona"})
 public class srvPersona extends HttpServlet {
@@ -37,27 +46,28 @@ public class srvPersona extends HttpServlet {
 
             if (accion != null) {
                 switch (accion) {
-                    case "registrar": // Registro Público (Redirige a registrar.jsp)
-                        registrar(request, response, false);
-                        break;
-                        
-                    case "registrarModal": // NUEVO: Registro Admin (Se queda en el CRUD)
+                    case "registrarModal": // VIENE DE TU JSP (UsuariosCrud.jsp)
                         registrar(request, response, true); 
                         break;
                         
+                    case "registrar": // Registro Público
+                        registrar(request, response, false);
+                        break;
+
                     case "listar":
                         request.setAttribute("listaUsuarios", dao.listarUsuariosCompletos());
                         request.getRequestDispatcher(VISTA_CRUD).forward(request, response);
                         break;
                     
-                    case "reporteUsuario":
-                        reporteUsuario(request,response);
-                        break;
-                       
                     case "listarReporte":
                         request.setAttribute("listaUsuarios", dao.listarUsuariosCompletos());
                         request.getRequestDispatcher(VISTA_REPORTE).forward(request, response);
-                         break;
+                        break;
+
+                    case "reporteUsuario":
+                        reporteUsuario(request, response);
+                        break;
+                        
                     case "eliminar":
                         String idElim = request.getParameter("id");
                         if(dao.eliminarTodo(idElim)) {
@@ -88,12 +98,12 @@ public class srvPersona extends HttpServlet {
         }
     }
 
-    // Modifiqué este método para aceptar un booleano 'esAdmin'
     private void registrar(HttpServletRequest request, HttpServletResponse response, boolean esAdmin) throws Exception {
         Persona p = new Persona();
         Usuario u = new Usuario(); 
         
         try {
+            // --- 1. DATOS PERSONALES ---
             p.setCodigoPersona(request.getParameter("txtCedula"));
             p.setCedula(request.getParameter("txtCedula"));
             p.setNombre(request.getParameter("txtNombre"));
@@ -103,47 +113,66 @@ public class srvPersona extends HttpServlet {
             String fechaStr = request.getParameter("txtFechaNac");
             if (fechaStr != null && !fechaStr.isEmpty()) {
                 p.setFechaNaci(new SimpleDateFormat("yyyy-MM-dd").parse(fechaStr));
-            } else {
-                throw new Exception("Fecha obligatoria");
             }
-
             try { p.setCargas(Integer.parseInt(request.getParameter("txtCargas"))); } catch (Exception e) { p.setCargas(0); }
 
             Sexo s = new Sexo(); s.setCodigoSexo(request.getParameter("cboSexo")); p.setCodigoSexo(s);
             EstadoCivil ec = new EstadoCivil(); ec.setCodigoEstciv(request.getParameter("cboEstadoCivil")); p.setCodigoEstciv(ec);
             p.setDireccion(request.getParameter("txtDireccion"));
             p.setCelular(request.getParameter("txtCelular"));
-            p.setTelDom(request.getParameter("txtTelDom")); // Usamos TelDom como campo genérico si hace falta o lo dejamos vacío si el modal no lo tiene
+            p.setTelDom(request.getParameter("txtTelDom"));
 
-            String pass1 = request.getParameter("txtPassword");
-            String pass2 = request.getParameter("txtPassword2");
-            if(!pass1.equals(pass2)) throw new Exception("Contraseñas no coinciden");
-
+            // --- 2. USUARIO ---
             String login = (p.getEmail() != null && p.getEmail().contains("@")) ? p.getEmail().split("@")[0] : p.getCedula();
             u.setLogin(login);
-            u.setPassword(pass1);
             u.setPersona(p);
 
-            DAOPERSONA dao = new DAOPERSONA();
-            if (dao.registrarInvitado(u)) { 
-                request.setAttribute("msj", "Registrado exitosamente. Usuario: " + login);
-                request.setAttribute("tipo", "OK");
+            // --- 3. CLAVE Y TOKEN ---
+            String clavePlana = "";
+
+            if (esAdmin) {
+                // Genera random (8 chars) y Token "1" (Obliga cambio)
+                clavePlana = UUID.randomUUID().toString().substring(0, 8);
+                u.setTokenRecuperacion("1"); 
             } else {
-                request.setAttribute("msj", "Error: Ya existe cédula o correo.");
-                request.setAttribute("tipo", "ERROR");
+                // Público: Usa input y Token "0"
+                clavePlana = request.getParameter("txtPassword");
+                u.setTokenRecuperacion("0");
             }
+
+            u.setPassword(Encriptador.sha256(clavePlana));
+
+            // --- 4. GUARDAR ---
+            DAOPERSONA dao = new DAOPERSONA();
+            
+            if (dao.registrarInvitado(u)) { 
+                
+                if (esAdmin) {
+                    // Envía correo directo
+                    enviarCorreoSMTP(p.getEmail(), clavePlana);
+                    // ESTE ES EL MENSAJE QUE VERÁS EN EL JSP:
+                    request.setAttribute("msj", "Registro Exitoso. Las credenciales fueron enviadas al correo: " + p.getEmail());
+                } else {
+                    request.setAttribute("msj", "Registro Exitoso.");
+                }
+                request.setAttribute("tipo", "OK"); // Esto pone la alerta en verde
+            } else {
+                request.setAttribute("msj", "Error: Ya existe cédula o usuario.");
+                request.setAttribute("tipo", "ERROR"); // Esto pone la alerta en rojo
+            }
+
         } catch (Exception e) {
+            e.printStackTrace();
             request.setAttribute("msj", "Error: " + e.getMessage());
             request.setAttribute("tipo", "ERROR");
         }
 
+        // REDIRECCIONAR
         if (esAdmin) {
-            // Si es desde el CRUD, recargamos la lista y volvemos al CRUD
             DAOPERSONA dao = new DAOPERSONA();
             request.setAttribute("listaUsuarios", dao.listarUsuariosCompletos());
             request.getRequestDispatcher(VISTA_CRUD).forward(request, response);
         } else {
-            // Si es público, volvemos al formulario de registro (como estaba antes)
             request.getRequestDispatcher(VISTA_REGISTRAR).forward(request, response);
         }
     }
@@ -172,64 +201,79 @@ public class srvPersona extends HttpServlet {
         request.getRequestDispatcher(VISTA_CRUD).forward(request, response);
     }
 
+    private void reporteUsuario(HttpServletRequest request, HttpServletResponse response) {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=ReporteUsuario.pdf");
+
+        try {
+            String codigoPersona = request.getParameter("codigo");
+            if (codigoPersona == null) return;
+
+            DAOPERSONA dao = new DAOPERSONA();
+            Usuario u = dao.obtenerUsuarioPorCodigo(codigoPersona);
+            if (u == null) return;
+
+            PDF pdf = new PDF();
+            PDFPage page = pdf.newPage("A4");
+            PDFStyle titulo = new PDFStyle();
+            titulo.setFont(new StandardFont(StandardFont.HELVETICA), 18);
+            titulo.setFillColor(Color.BLACK);
+            PDFStyle texto = new PDFStyle();
+            texto.setFont(new StandardFont(StandardFont.HELVETICA), 12);
+
+            float y = page.getHeight() - 50;
+            page.setStyle(titulo);
+            page.drawText("REPORTE DEL USUARIO", 50, y);
+            y -= 40;
+
+            Persona p = u.getPersona();
+            page.setStyle(texto);
+            page.drawText("Código: " + p.getCodigoPersona(), 50, y); y -= 20;
+            page.drawText("Cédula: " + p.getCedula(), 50, y); y -= 20;
+            page.drawText("Nombre: " + p.getNombre() + " " + p.getApellido(), 50, y); y -= 20;
+            page.drawText("Email: " + p.getEmail(), 50, y); y -= 20;
+            page.drawText("Login: " + u.getLogin(), 50, y); y -= 20;
+
+            OutputStream out = response.getOutputStream();
+            pdf.render(out);
+            out.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // --- TU MÉTODO DE CORREO (Directo y con tus credenciales) ---
+    private void enviarCorreoSMTP(String destino, String password) {
+         try {
+            Properties props = new Properties();
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "587");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+
+            final String correoEmisor = "obanderick@gmail.com";
+            final String claveCorreo = "wkcbeiirqchurtft"; 
+
+            Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
+                @Override protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(correoEmisor, claveCorreo);
+                }
+            });
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(correoEmisor));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destino));
+            message.setSubject("Bienvenido al Sistema - Credenciales");
+            message.setText("Usuario: " + destino + "\nContraseña Temporal: " + password + "\n\nDebe cambiarla al ingresar.");
+
+            Transport.send(message);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override protected void doGet(HttpServletRequest r, HttpServletResponse s) throws ServletException, IOException { processRequest(r, s); }
     @Override protected void doPost(HttpServletRequest r, HttpServletResponse s) throws ServletException, IOException { processRequest(r, s); }
-
-  private void reporteUsuario(HttpServletRequest request, HttpServletResponse response) {
-    response.setContentType("application/pdf");
-    response.setHeader("Content-Disposition", "attachment; filename=ReporteUsuario.pdf");
-
-    try {
-        String codigoPersona = request.getParameter("codigo");
-        if (codigoPersona == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el código de usuario");
-            return;
-        }
-
-        DAOPERSONA dao = new DAOPERSONA();
-        Usuario u = dao.obtenerUsuarioPorCodigo(codigoPersona);
-
-        if (u == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
-            return;
-        }
-
-        PDF pdf = new PDF();
-        PDFPage page = pdf.newPage("A4");
-
-        PDFStyle titulo = new PDFStyle();
-        titulo.setFont(new StandardFont(StandardFont.HELVETICA), 18);
-        titulo.setFillColor(Color.BLACK);
-
-        PDFStyle texto = new PDFStyle();
-        texto.setFont(new StandardFont(StandardFont.HELVETICA), 12);
-
-        float y = page.getHeight() - 50;
-
-        page.setStyle(titulo);
-        page.drawText("REPORTE DEL USUARIO", 50, y);
-        y -= 40;
-
-        Persona p = u.getPersona();
-
-        page.setStyle(texto);
-        page.drawText("Código: " + p.getCodigoPersona(), 50, y); y -= 20;
-        page.drawText("Cédula: " + p.getCedula(), 50, y); y -= 20;
-        page.drawText("Nombre: " + p.getNombre() + " " + p.getApellido(), 50, y); y -= 20;
-        page.drawText("Email: " + p.getEmail(), 50, y); y -= 20;
-        page.drawText("Celular: " + p.getCelular(), 50, y); y -= 20;
-        page.drawText("Dirección: " + p.getDireccion(), 50, y); y -= 20;
-        page.drawText("Fecha de Nacimiento: " + p.getFechaNaci(), 50, y); y -= 20;
-        page.drawText("Cargas: " + p.getCargas(), 50, y); y -= 20;
-        page.drawText("Login de Usuario: " + u.getLogin(), 50, y); y -= 20;
-
-        OutputStream out = response.getOutputStream();
-        pdf.render(out);
-        out.close();
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-    }
-}
-
 }

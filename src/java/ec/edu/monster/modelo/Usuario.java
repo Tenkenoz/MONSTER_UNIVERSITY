@@ -19,6 +19,8 @@ public class Usuario {
     private String recuperacion;
     private Estado codEstado;   // <f1> Characters (1) (FK a ESTADO)
     private Date expiracion;
+    private String Token;
+    private String TokenRecuperacion;
 
     public Date getExpiracion() {
         return expiracion;
@@ -98,5 +100,24 @@ public class Usuario {
     public void setPersona(Persona persona) {
         this.persona = persona;
     }
+
+    public void setToken(String Token) {
+        this.Token = Token;
+    }
+
+    
+    public String getToken() {
+        return Token;
+    }
+
+    public String getTokenRecuperacion() {
+        return TokenRecuperacion;
+    }
+
+    public void setTokenRecuperacion(String TokenRecuperacion) {
+        this.TokenRecuperacion = TokenRecuperacion;
+    }
+
+   
     
 }
