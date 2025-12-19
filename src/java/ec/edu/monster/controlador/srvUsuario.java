@@ -6,6 +6,7 @@ import ec.edu.monster.modelo.Persona;
 import ec.edu.monster.modelo.Empleado;
 import ec.edu.monster.modelo.Estudiante;
 import ec.edu.monster.modelo.Encriptador; 
+import ec.edu.monster.modelo.Sistema;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,6 +22,7 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.util.List;
 import java.util.Properties;
 
 @WebServlet(name = "srvUsuario", urlPatterns = {"/srvUsuario"})
@@ -61,59 +63,79 @@ public class srvUsuario extends HttpServlet {
         }
     }
 
-    private void verificar(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Usuario usuarioInput = new Usuario();
-        usuarioInput.setLogin(request.getParameter("txtEmail"));
-        usuarioInput.setPassword(request.getParameter("txtPassword"));
-        
-        // Encriptar lo que ingresó el usuario para comparar
-        String passHash = Encriptador.sha256(usuarioInput.getPassword());
-        usuarioInput.setPassword(passHash);
+   private void verificar(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 1. Recibir credenciales del formulario
+    Usuario usuarioInput = new Usuario();
+    usuarioInput.setLogin(request.getParameter("txtEmail"));
+    usuarioInput.setPassword(request.getParameter("txtPassword"));
+    
+    // 2. Encriptar contraseña para comparar con la BD
+    String passHash = Encriptador.sha256(usuarioInput.getPassword());
+    usuarioInput.setPassword(passHash);
 
-        DAOUSUARIO dao = new DAOUSUARIO();
-        Usuario usuarioLogueado = dao.identificar(usuarioInput);
+    // 3. Consultar a la Base de Datos
+    DAOUSUARIO dao = new DAOUSUARIO();
+    Usuario usuarioLogueado = dao.identificar(usuarioInput);
 
-        if (usuarioLogueado != null) {
-            HttpSession sesion = request.getSession();
-            sesion.setAttribute("usuario", usuarioLogueado);
+    // 4. Verificar si el usuario existe
+    if (usuarioLogueado != null) {
+        HttpSession sesion = request.getSession();
+        sesion.setAttribute("usuario", usuarioLogueado);
 
-            // --- AQUÍ CONECTAMOS CON TU JSP ---
-            // Si el token es "1", lo mandamos a cambiar clave obligatoriamente
-            // (Asumo que en tu Modelo Usuario mapeaste XEUSU_TOKEN_REC al atributo 'token')
-            if ("1".equals(usuarioLogueado.getToken())) { 
-                request.setAttribute("msjerror", "Por seguridad, cambie su contraseña temporal.");
-                // Redirige a TU archivo
-                request.getRequestDispatcher(CARPETA_VISTAS + "cambiarClaveObligatorio.jsp").forward(request, response);
-                return; 
-            }
-            // ----------------------------------
-
-            Persona persona = usuarioLogueado.getPersona();
-            if (persona instanceof Empleado) {
-                Empleado emp = (Empleado) persona;
-                sesion.setAttribute("empleado", emp);
-                String rol = (emp.getCodigoRol() != null) ? emp.getCodigoRol().getCodigoRol() : "INV";
-                
-                String destino = "Invitados.jsp";
-                if("SUP".equals(rol)) destino = "panelAdmin.jsp";
-                else if("ADM".equals(rol)) destino = "Administradores.jsp";
-                else if("DOC".equals(rol)) destino = "Docentes.jsp";
-                else if("SEC".equals(rol)) destino = "Secretaria.jsp";
-                
-                request.getRequestDispatcher(CARPETA_VISTAS + destino).forward(request, response);
-
-            } else if (persona instanceof Estudiante) {
-                sesion.setAttribute("estudiante", (Estudiante) persona);
-                request.getRequestDispatcher(CARPETA_VISTAS + "Estudiantes.jsp").forward(request, response);
-            } else {
-                request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
-            }
-        } else {
-            request.setAttribute("msjerror", "Credenciales Incorrectas");
-            request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
+        // --- VALIDACIÓN DE CAMBIO DE CLAVE OBLIGATORIO ---
+        // Si el token es "1", lo mandamos a cambiar clave
+        if ("1".equals(usuarioLogueado.getToken())) { 
+            request.setAttribute("msjerror", "Por seguridad, cambie su contraseña temporal.");
+            request.getRequestDispatcher(CARPETA_VISTAS + "cambiarClaveObligatorio.jsp").forward(request, response);
+            return; 
         }
-    }
 
+        // --- LÓGICA PARA DETECTAR PERFIL Y ROL ---
+        Persona persona = usuarioLogueado.getPersona();
+        String codPerfil = "INV";        // Valor por defecto (Invitado)
+        String nombrePerfil = "Invitado"; // Nombre para mostrar en el Header
+        
+        if (persona instanceof Empleado) {
+            // CASO EMPLEADO
+            Empleado emp = (Empleado) persona;
+            sesion.setAttribute("empleado", emp);
+            
+            if(emp.getCodigoRol() != null) {
+                // Obtenemos el código (ej: ADM, DOC, SEC)
+                codPerfil = emp.getCodigoRol().getCodigoRol();
+                
+                // Intentamos obtener la descripción del rol, si no existe, ponemos un genérico
+                if(emp.getCodigoRol().getDescriRol() != null) {
+                    nombrePerfil = emp.getCodigoRol().getDescriRol();
+                } else {
+                    nombrePerfil = "Personal Administrativo";
+                }
+            }
+        } else if (persona instanceof Estudiante) {
+            // CASO ESTUDIANTE
+            sesion.setAttribute("estudiante", (Estudiante) persona);
+            codPerfil = "EST"; 
+            nombrePerfil = "Estudiante";
+        }
+        
+        // --- ¡ESTO ERA LO QUE FALTABA! GUARDAR EN SESIÓN ---
+        // Sin esto, el JSP y el JavaScript no saben qué perfil cargar
+        sesion.setAttribute("codPerfil", codPerfil);
+        sesion.setAttribute("nombrePerfil", nombrePerfil);
+
+        // --- CARGAR MENÚ DINÁMICO ---
+        List<Sistema> menuDinamico = dao.obtenerMenuPorPerfil(codPerfil);
+        sesion.setAttribute("menuDinamico", menuDinamico);
+
+        // 5. Redirigir al Panel Principal (Main)
+        request.getRequestDispatcher(CARPETA_VISTAS + "main.jsp").forward(request, response);
+
+    } else {
+        // Usuario o clave incorrectos
+        request.setAttribute("msjerror", "Credenciales Incorrectas");
+        request.getRequestDispatcher(CARPETA_VISTAS + "login.jsp").forward(request, response);
+    }
+}
     // --- AQUÍ PROCESAMOS LOS DATOS DE TU JSP ---
     private void cambiarObligatorio(HttpServletRequest request, HttpServletResponse response) throws Exception {
         HttpSession sesion = request.getSession();

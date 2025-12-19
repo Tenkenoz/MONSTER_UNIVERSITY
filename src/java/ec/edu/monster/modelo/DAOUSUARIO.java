@@ -3,6 +3,8 @@ package ec.edu.monster.modelo;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DAOUSUARIO extends Conexion {
 
@@ -86,4 +88,70 @@ public class DAOUSUARIO extends Conexion {
             ps.executeUpdate();
         }
     }
+    
+    public List<Sistema> obtenerMenuPorPerfil(String codPerfil) throws Exception {
+    List<Sistema> listaSistemas = new ArrayList<>();
+    Connection cn = null;
+    
+    // USAMOS INNER JOIN: Solo trae las opciones que existen en la tabla de permisos (XEOXP_OPCPE)
+    String sql = "SELECT S.XESIS_CODIGO, S.XESIS_DESCRI, " +
+                 "       O.XEOPC_CODIGO, O.XEOPC_DESCRI " +
+                 "FROM XESIS_SISTE S " +
+                 "INNER JOIN XEOPC_OPCIO O ON S.XESIS_CODIGO = O.XESIS_CODIGO " +
+                 "INNER JOIN XEOXP_OPCPE P ON O.XEOPC_CODIGO = P.XEOPC_CODIGO " +
+                 "WHERE P.XEPER_CODIGO = ? " +
+                 "ORDER BY S.XESIS_CODIGO, O.XEOPC_CODIGO";
+
+    try {
+        cn = conectar();
+        PreparedStatement ps = cn.prepareStatement(sql);
+        ps.setString(1, codPerfil); 
+        ResultSet rs = ps.executeQuery();
+
+        String codSisActual = "";
+        Sistema sisTemp = null;
+
+        while (rs.next()) {
+            String sisCodigo = rs.getString("XESIS_CODIGO");
+            String sisNombre = rs.getString("XESIS_DESCRI");
+            String opcCodigo = rs.getString("XEOPC_CODIGO");
+            String opcNombre = rs.getString("XEOPC_DESCRI");
+
+            // 1. Control de ruptura (Agrupamiento por Sistema)
+            if (!sisCodigo.equals(codSisActual)) {
+                sisTemp = new Sistema();
+                sisTemp.setCodigo(sisCodigo);
+                sisTemp.setNombre(sisNombre);
+                sisTemp.setOpciones(new ArrayList<>()); 
+                
+                listaSistemas.add(sisTemp);
+                codSisActual = sisCodigo;
+            }
+
+            // 2. Crear la opción
+            Opcion op = new Opcion();
+            op.setCodigo(opcCodigo);
+            op.setNombre(opcNombre);
+            
+            // 3. GENERAR URL DINÁMICA
+            // Como tu base de datos no tiene columna URL, la inventamos aquí
+            // Ejemplo: Si la opción es "Matricula", intentará ir a "Matricula.jsp"
+            // O puedes redirigir todo a un servlet central.
+            // Opción A: JSPs directos
+             op.setUrl(opcNombre.replaceAll(" ", "") + ".jsp"); 
+            
+            // Opción B: Servlet Central (Descomenta si prefieres esto)
+            // op.setUrl("srvGestion?accion=" + opcCodigo);
+
+            if (sisTemp != null) {
+                sisTemp.getOpciones().add(op);
+            }
+        }
+        rs.close();
+        ps.close();
+    } finally {
+        if (cn != null) cn.close();
+    }
+    return listaSistemas;
+}
 }

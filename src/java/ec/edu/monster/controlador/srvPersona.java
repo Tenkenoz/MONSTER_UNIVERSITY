@@ -31,8 +31,8 @@ import java.io.OutputStream;
 public class srvPersona extends HttpServlet {
 
     private static final String VISTA_REGISTRAR = "/ec.edu.monster.vista/registrar.jsp";
-    private static final String VISTA_CRUD = "/ec.edu.monster.vista/UsuariosCrud.jsp";
-    private static final String VISTA_REPORTE = "/ec.edu.monster.vista/ReporteUsuarios.jsp";
+    private static final String VISTA_CRUD = "/ec.edu.monster.vista/Usuarios.jsp";
+    private static final String VISTA_REPORTE = "/ec.edu.monster.vista/Seguridad.jsp";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -201,45 +201,159 @@ public class srvPersona extends HttpServlet {
         request.getRequestDispatcher(VISTA_CRUD).forward(request, response);
     }
 
+// ---------------------------------------------------------------
+    // GENERADOR DE PDF NATIVO (SIN LIBRERÍAS EXTERNAS)
+    // ESTILO: MONSTER UNIVERSITY
+    // ---------------------------------------------------------------
     private void reporteUsuario(HttpServletRequest request, HttpServletResponse response) {
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=ReporteUsuario.pdf");
+        // 1. Obtener Datos
+        String codigoPersona = request.getParameter("codigo");
+        if (codigoPersona == null) return;
 
+        DAOPERSONA dao = new DAOPERSONA();
+        Usuario u = null;
         try {
-            String codigoPersona = request.getParameter("codigo");
-            if (codigoPersona == null) return;
+            u = dao.obtenerUsuarioPorCodigo(codigoPersona);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        if (u == null) return;
 
-            DAOPERSONA dao = new DAOPERSONA();
-            Usuario u = dao.obtenerUsuarioPorCodigo(codigoPersona);
-            if (u == null) return;
+        // 2. Configurar Respuesta HTTP
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=Ficha_" + u.getLogin() + ".pdf");
 
-            PDF pdf = new PDF();
-            PDFPage page = pdf.newPage("A4");
-            PDFStyle titulo = new PDFStyle();
-            titulo.setFont(new StandardFont(StandardFont.HELVETICA), 18);
-            titulo.setFillColor(Color.BLACK);
-            PDFStyle texto = new PDFStyle();
-            texto.setFont(new StandardFont(StandardFont.HELVETICA), 12);
+        try (java.io.OutputStream out = response.getOutputStream()) {
+            // Construcción del PDF en memoria
+            StringBuilder pdf = new StringBuilder();
+            java.util.List<Integer> objOffsets = new java.util.ArrayList<>();
 
-            float y = page.getHeight() - 50;
-            page.setStyle(titulo);
-            page.drawText("REPORTE DEL USUARIO", 50, y);
-            y -= 40;
+            // --- CABECERA PDF ---
+            pdf.append("%PDF-1.4\n");
+            
+            // --- OBJETOS ---
+            
+            // OBJ 1: Catálogo
+            addObj(pdf, objOffsets);
+            pdf.append("<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
 
+            // OBJ 2: Árbol de Páginas
+            addObj(pdf, objOffsets);
+            pdf.append("<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+
+            // OBJ 3: La Página
+            addObj(pdf, objOffsets);
+            pdf.append("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>\nendobj\n");
+
+            // OBJ 4: Fuente Helvetica (Normal)
+            addObj(pdf, objOffsets);
+            pdf.append("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n");
+
+            // OBJ 5: Fuente Helvetica Bold (Negrita)
+            addObj(pdf, objOffsets);
+            pdf.append("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n");
+
+            // --- CONTENIDO GRÁFICO (AQUÍ DIBUJAMOS) ---
+            StringBuilder stream = new StringBuilder();
+            
+            // 1. ENCABEZADO AZUL (Monster Inc Blue #003366 -> RGB: 0, 0.2, 0.4)
+            stream.append("0 0.2 0.4 rg\n"); // Color relleno azul
+            stream.append("0 742 595 100 re f\n"); // Rectángulo superior (x, y, w, h)
+            
+            // 2. LOGO "M" (Dibujado vectorial para no depender de imágenes externas)
+            // Circulo Verde (#99cc33 -> RGB: 0.6, 0.8, 0.2)
+            stream.append("0.6 0.8 0.2 rg\n"); 
+            // Dibujar circulo (aproximado con curvas Bezier) en (50, 792) radio 20
+            stream.append("50 772 m 50 783 59 792 70 792 c 81 792 90 783 90 772 c 90 761 81 752 70 752 c 59 752 50 761 50 772 c f\n");
+            
+            // Ojo del Logo (Blanco y Azul)
+            stream.append("1 1 1 rg\n"); // Blanco
+            stream.append("60 772 m 60 777 65 782 70 782 c 75 782 80 777 80 772 c 80 767 75 762 70 762 c 65 762 60 767 60 772 c f\n");
+            stream.append("0 0 0 rg\n"); // Negro (Pupila)
+            stream.append("67 772 m 67 774 68 775 70 775 c 72 775 73 774 73 772 c 73 770 72 769 70 769 c 68 769 67 770 67 772 c f\n");
+
+            // 3. TÍTULO UNIVERSIDAD (Blanco)
+            stream.append("BT\n/F2 24 Tf\n1 1 1 rg\n110 765 Td\n(MONSTER UNIVERSITY) Tj\nET\n");
+            
+            // 4. SUBTÍTULO REPORTE (Blanco pequeño)
+            stream.append("BT\n/F1 10 Tf\n1 1 1 rg\n110 752 Td\n(SISTEMA DE GESTION ACADEMICA - FICHA DE USUARIO) Tj\nET\n");
+
+            // 5. CAJA DE DATOS (Fondo Gris muy claro)
+            stream.append("0.95 0.95 0.95 rg\n");
+            stream.append("40 400 515 300 re f\n"); // Caja de fondo
+            stream.append("0.8 0.8 0.8 RG\n1 w\n"); // Borde gris
+            stream.append("40 400 515 300 re S\n"); // Pintar borde
+
+            // 6. DATOS DEL USUARIO
             Persona p = u.getPersona();
-            page.setStyle(texto);
-            page.drawText("Código: " + p.getCodigoPersona(), 50, y); y -= 20;
-            page.drawText("Cédula: " + p.getCedula(), 50, y); y -= 20;
-            page.drawText("Nombre: " + p.getNombre() + " " + p.getApellido(), 50, y); y -= 20;
-            page.drawText("Email: " + p.getEmail(), 50, y); y -= 20;
-            page.drawText("Login: " + u.getLogin(), 50, y); y -= 20;
+            int yText = 670; // Posición inicial Y
+            
+            // Título de sección
+            stream.append("BT\n/F2 14 Tf\n0 0.2 0.4 rg\n50 ").append(yText).append(" Td\n(INFORMACION DEL USUARIO) Tj\nET\n");
+            // Línea separadora azul
+            stream.append("0 0.2 0.4 RG\n2 w\n50 ").append(yText - 10).append(" m 545 ").append(yText - 10).append(" l S\n");
+            
+            yText -= 40;
 
-            OutputStream out = response.getOutputStream();
-            pdf.render(out);
-            out.close();
+            // Filas de datos
+            drawRow(stream, "CODIGO:", p.getCodigoPersona(), yText); yText -= 25;
+            drawRow(stream, "CEDULA:", p.getCedula(), yText); yText -= 25;
+            drawRow(stream, "NOMBRES:", p.getNombre() + " " + p.getApellido(), yText); yText -= 25;
+            drawRow(stream, "EMAIL:", p.getEmail(), yText); yText -= 25;
+            drawRow(stream, "TELEFONO:", p.getCelular(), yText); yText -= 25;
+            drawRow(stream, "DIRECCION:", p.getDireccion(), yText); yText -= 25;
+            drawRow(stream, "LOGIN:", u.getLogin(), yText); yText -= 25;
+            
+            String estado = (u.getCodEstado() != null && "1".equals(u.getCodEstado().getCodEstado())) ? "ACTIVO" : "INACTIVO";
+            // Dibujar estado con color (Verde si activo, Rojo si no)
+            stream.append("BT\n/F2 10 Tf\n0.3 0.3 0.3 rg\n60 ").append(yText).append(" Td\n(ESTADO DE CUENTA:) Tj\nET\n");
+            if("ACTIVO".equals(estado)) stream.append("0 0.6 0 rg\n"); else stream.append("0.8 0 0 rg\n");
+            stream.append("BT\n/F2 10 Tf\n200 ").append(yText).append(" Td\n(").append(estado).append(") Tj\nET\n");
+
+            // 7. PIE DE PÁGINA
+            String fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
+            stream.append("BT\n/F1 8 Tf\n0.5 0.5 0.5 rg\n40 30 Td\n(Generado el: ").append(fecha).append(") Tj\nET\n");
+            stream.append("BT\n/F1 8 Tf\n0.5 0.5 0.5 rg\n450 30 Td\n(Monster Inc. System) Tj\nET\n");
+
+            // OBJ 6: El Stream de Contenido
+            addObj(pdf, objOffsets);
+            pdf.append("<< /Length ").append(stream.length()).append(" >>\nstream\n");
+            pdf.append(stream);
+            pdf.append("\nendstream\nendobj\n");
+
+            // --- TABLA DE REFERENCIAS CRUZADAS (XREF) ---
+            long xrefPos = pdf.length();
+            pdf.append("xref\n0 7\n0000000000 65535 f \n");
+            for (int offset : objOffsets) {
+                pdf.append(String.format("%010d 00000 n \n", offset));
+            }
+
+            // --- TRAILER ---
+            pdf.append("trailer\n<< /Size 7 /Root 1 0 R >>\n");
+            pdf.append("startxref\n").append(xrefPos).append("\n%%EOF");
+
+            // Escribir al cliente
+            out.write(pdf.toString().getBytes("ISO-8859-1")); // Codificación estándar PDF
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    // Método auxiliar para registrar la posición de los objetos en el PDF
+    private void addObj(StringBuilder pdf, java.util.List<Integer> offsets) {
+        offsets.add(pdf.length());
+        pdf.append(offsets.size()).append(" 0 obj\n");
+    }
+
+    // Método auxiliar para dibujar filas de texto en el PDF
+    private void drawRow(StringBuilder sb, String label, String value, int y) {
+        // Etiqueta (Gris oscuro, Negrita)
+        sb.append("BT\n/F2 10 Tf\n0.3 0.3 0.3 rg\n60 ").append(y).append(" Td\n(").append(label).append(") Tj\nET\n");
+        // Valor (Negro, Normal)
+        sb.append("BT\n/F1 10 Tf\n0 0 0 rg\n200 ").append(y).append(" Td\n(").append(value != null ? value : "-").append(") Tj\nET\n");
+        // Línea punteada debajo
+        sb.append("0.8 0.8 0.8 RG\n[1 2] 0 d\n1 w\n60 ").append(y - 5).append(" m 540 ").append(y - 5).append(" l S\n[] 0 d\n");
     }
 
     // --- TU MÉTODO DE CORREO (Directo y con tus credenciales) ---

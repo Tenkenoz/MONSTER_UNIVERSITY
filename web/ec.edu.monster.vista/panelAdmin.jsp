@@ -219,6 +219,7 @@
                     <a class="dropdown-item" onclick="cargarUsuariosCrud()"><i class="fas fa-users"></i> 2.4 Usuarios</a>
                     
                     <a class="dropdown-item" onclick="cargarRolesSeguridad()"><i class="fas fa-user-shield"></i> 2.5 Roles</a>
+                    <a class="dropdown-item" onclick="cargarOpciones()"><i class="fas fa-user-shield"></i> 2.5 Opciones Perfil</a>
                 </div>
             </li>
 
@@ -279,6 +280,12 @@
             document.getElementById('content-area').innerHTML = 
                 `<iframe src="${pageContext.request.contextPath}/srvSeguridad?accion=listarInvitados" class="content-frame"></iframe>`;
         }
+        
+       function cargarOpciones(){
+           document.getElementById('content-area').innerHTML = 
+                `<iframe src="${pageContext.request.contextPath}/srvSeguridad?accion=verOpciones" class="content-frame"></iframe>`;
+       }
+       
         function cargarReporteSeguridad() {
             // Carga la gestión de roles (srvSeguridad -> seguridadAdmin.jsp)
             document.getElementById('content-area').innerHTML = 
